@@ -31,7 +31,10 @@
      Finishing the interviews, I sum up their opinions in two points. Fristly, the visualization are more attractive and vivid with some animations and readers can get some information from the visualization. For example, four persons know that in this dataset, baseball players'height have positive proportion relationship with players'weight in the distribution of players' batting average and full baseball scores. Also, five of interviewees say that they know most of players are distribution around the coordinate system and most of players'height is in the range of 68 inch to 76 inch and most of their weight is in the range of 150 pound to 210 pound. Besides, four of interviewees know the in the batting average range of [0.2424, 0.2783] and the range of [0.2784, 0.3500], baseball players'batting average are bigger and the full baseball scores are bigger,too. What's more, there are most players using right hand and least players using both of two hand. Also, in this three type of players, people using left hand have high rate of big batting average.In one word, the readers can get informations that I want to tell them from visualization. Secondly, lost of initereviewees notice that the contexts in the SVG make the visualization more clearly and those contexts include legends and the range of average values and data source.
 
 ## Reference
+website
 * https://www.w3.org/TR/SVG/text.html
 * https://d3js.org/
 * https://github.com/d3/d3-drag/blob/master/README.md#
 * https://classroom.udacity.com/nanodegrees/nd002-cn-advanced/parts/7f46cd58-8041-4d9d-88a5-4b7c6f7be63e/modules/0a2b9337-2d60-4caf-8660-c9ffcff7dd3f/lessons/3184238632239847/concepts/31814787270923
+forum: 
+* http://discussions.youdaxue.com/search?q=D3
