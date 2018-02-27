@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="d3.v3.min.js"></script>
+    <style>
+      h2{
+        color: black;
+        text-align: center;
+      }
+
+      .axis{
+        font-family: arial;
+        font-size: 0.4em;
+      }
+
+      circle{
+        opacity: 0.4;
+        stroke: none;
+      }
+      rect{
+        opacity: 0.4;
+        stroke: none;
+      }
+    </style>
+    <script type="text/javascript">  
+      function draw(data) {
+        "use strict";
+        var margin = 75,
+            width = 1400 - margin,
+            height = 600 - margin;
+
+        // draw the title
+        d3.select("body")
+          .append("h2")
+          .text("Baseball Data");
+
+        //define the svg 
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width + margin)
+            .attr("height", height + margin)
+            .append('g')
+            .attr('class', 'chart');
+ 
+        //define chart i
+        var chart = d3.select(".chart")
+                      .attr("width", width+margin)
+                      .attr("height", height+margin)
+                      .append("g")
+                      .attr("transform","translate("+margin+","+margin+")");
+
+        //append circle
+        d3.select("svg")
+          .selectAll("circle")
+          .data(data)
+          .enter()
+          .append("circle")
+
+        // define scale and axis
+        var weight_scale = d3.scale.linear()
+                             .domain(d3.extent(data,function(d){return d['weight'];}))
+                             .range([margin,width]);
+
+        var height_scale = d3.scale.linear()
+                             .domain(d3.extent(data,function(d){return d['height'];}))
+                             .range([height,margin]);
+
+        var r_scale = d3.scale.linear()
+                              .domain(d3.extent(data, function(d){return d['avg'];}))
+                              .range([5,15]);
+
+        var weight_axis = d3.svg.axis().scale(weight_scale).orient("bottom");
+
+        var height_axis = d3.svg.axis().scale(height_scale).orient("left");
+
+        d3.select("svg")
+          .append("g")
+          .attr("class","x axis")
+          .attr("transform","translate(0,"+height+")")
+          .call(weight_axis);
+
+        d3.select("svg")
+          .append("g")
+          .attr("class","y axis")
+          .attr("transform","translate("+margin+",0)")
+          .call(height_axis);
+
+        debugger;
+
+        //draw all circle
+        d3.selectAll("circle")
+          .attr("cx", function(d) {return weight_scale(d["weight"]);})
+          .attr("cy", function(d) {return height_scale(d["height"]);})
+          .attr("r", function(d) {return r_scale(d["avg"]);})
+          .attr("fill","red");
+
+        //add y  axis text
+        chart.append("text")
+             .attr("transform","rotate(0)")
+             .attr("y",-110)
+             .attr("dy","7em")
+             .text("height/(inch)");
+        //add x axis text        
+        chart.append("text")
+             .attr("transform","rotate(0)")
+             .attr("y",470)
+             .attr("x",1100)
+             .attr("dx","7em")
+             .text("weight/(pound)");
+
+        //define the scale of HR
+        var HR_scale = d3.scale.linear()
+                       .domain(d3.extent(data,function(d){return d['HR'];}))
+                       .range([5,15]);
+         
+        //draw blue rect -- HR
+        d3.select("svg")
+          .selectAll("rect")
+          .data(data)
+          .enter()
+          .append("rect")
+          .attr("class","frame")
+          .attr("x", function(d) {return (weight_scale(d["weight"])+HR_scale(d["HR"]));})
+          .attr("y", function(d) {return (height_scale(d["height"])+HR_scale(d["HR"]));})
+          .attr("width", function(d){return (HR_scale(d["HR"]));})
+          .attr("height", function(d){return (HR_scale(d["HR"]));})
+          .attr("fill","blue");
+ 
+        debugger;
+
+        var legend = svg.append("g")
+                        .attr("class","legend")
+                        .attr("transform","translate(10,10)")
+                        .selectAll("g")
+                        .data(["avger","HR_score"])
+                        .enter()
+                        .append("g");
+        legend.append("circle")
+              .attr("cy",30)
+              .attr("r",5)
+              .attr("fill","red");
+        legend.append("rect")
+              .attr("cy",60)
+              .attr("x",-5)
+              .attr("width",10)
+              .attr("height",10)
+              .attr("fill","blue");
+        legend.append("text")
+              .attr("y",function(d,i){return i*30+5;})
+              .attr("x",25)
+              .text(function(d){
+                if(d=="avger"){return "HR_score";}
+                else {return "avger";}
+              });
+
+      };
+    </script>
+</head>
+<body>
+  <script type="text/javascript">
+  /*
+    Use D3 to load the csv file
+    */
+    
+    d3.csv("baseball_data.csv", draw);
+  </script>
+</body>
+</html>
