@@ -36,6 +36,7 @@ website
 * https://d3js.org/
 * https://github.com/d3/d3-drag/blob/master/README.md#
 * https://classroom.udacity.com/nanodegrees/nd002-cn-advanced/parts/7f46cd58-8041-4d9d-88a5-4b7c6f7be63e/modules/0a2b9337-2d60-4caf-8660-c9ffcff7dd3f/lessons/3184238632239847/concepts/31814787270923
+* https://d3js.org/d3.v3.min.js
 
 forum: 
 * http://discussions.youdaxue.com/search?q=D3
