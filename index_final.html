@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="d3.v3.min.js"></script>
+    <style>
+      h2{
+        color: black;
+        text-align: center;
+      }
+
+      .axis{
+        font-family: arial;
+        font-size: 0.4em;
+      }
+
+      circle{
+        opacity: 0.5;
+        stroke: none;
+      }
+      rect{
+        opacity: 0.5;
+        stroke: none;
+      }
+      ellipse{
+        opacity: 0.5;
+        stroke: none;
+      }
+    div.source_data{
+      position: relative;
+      top:550px;
+      left: 30px;
+    }
+    g.axis{
+      font-size: 1em;
+    }
+
+    </style>
+    <script type="text/javascript">  
+      function draw(data) {
+        //sort the data so as to make data in ascending order
+        var data = data.sort(function(a,b){return a.avg-b.avg;});
+
+        "use strict";
+        var margin = 75,
+            width = 1400 - margin,
+            height = 570 - margin;
+
+        // draw the title
+        d3.select("body")
+          .append("h2")
+          .text("Baseball Data");
+        //add notes of dataset source
+        d3.select("body")
+          .append("div")
+          .attr("class","source_data")
+          .text("data source:https://s3.amazonaws.com/udacity-hosted-downloads/ud507/baseball_data.csv");
+
+
+        //define the svg 
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width + margin)
+            .attr("height", height + margin)
+            .append('g')
+            .attr('class', 'chart');
+ 
+        //define chart 
+        var chart = d3.select(".chart")
+                      .attr("width", width+margin)
+                      .attr("height", height+margin)
+                      .append("g")
+                      .attr("transform","translate("+margin+","+margin+")");
+
+
+        // define scale and axis
+        var weight_extent = d3.extent(data,function(d){return d['weight'];});
+        var height_extent = d3.extent(data,function(d){return d['height'];});
+        
+        var weight_scale = d3.scale.linear()
+                             .domain(weight_extent)
+                             .range([margin,width]);
+
+        var height_scale = d3.scale.linear()
+                             .domain(height_extent)
+                             .range([height,margin]);
+
+        var r_scale = d3.scale.linear()
+                        .domain(d3.extent(data, function(d){return d['avg'];}))
+                        .range([5,15]);
+
+        //define the scale of HR
+        var HR_scale = d3.scale.linear()
+                         .domain(d3.extent(data,function(d){return d['HR'];}))
+                         .range([5,15]);
+
+        var weight_axis = d3.svg.axis().scale(weight_scale).orient("bottom");
+
+        var height_axis = d3.svg.axis().scale(height_scale).orient("left");
+        //append weight_axis in SVG as x-axis
+        d3.select("svg")
+          .append("g")
+          .attr("class","x axis")
+          .attr("transform","translate(0,"+height+")")
+          .call(weight_axis);
+        //append height_axis in SVG as y-axis
+        d3.select("svg")
+          .append("g")
+          .attr("class","y axis")
+          .attr("transform","translate("+margin+",0)")
+          .call(height_axis);
+ 
+        //add notes for y-axis
+        chart.append("text")
+             .attr("transform","rotate(0)")
+             .attr("y",-110)
+             .attr("dy","7em")
+             .text("height/(inch)");
+        //add notes for x-axis        
+        chart.append("text")
+             .attr("transform","rotate(0)")
+             .attr("y",460)
+             .attr("x",1020)
+             .attr("dx","7em")
+             .text("weight/(pound)");
+        //draw the legend of avg and HR
+        var legend = svg.append("g")
+                        .attr("class","legend")
+                        .attr("transform","translate(10,10)")
+                        .selectAll("g")
+                        .data(["avger","HR_score"])
+                        .enter()
+                        .append("g");
+        legend.append("circle")
+              .attr("cy",30)
+              .attr("r",5)
+              .attr("fill","red");
+        legend.append("ellipse")
+              .attr("cy",-1)
+              .attr("cx",0)
+              .attr("rx",5)
+              .attr("ry",5)
+              .attr("fill","blue");
+        legend.append("text")
+              .attr("y",function(d,i){return i*30+5;})
+              .attr("x",25)
+              .text(function(d){
+                if(d=="avger"){return "full_ball_score";}
+                else {return "batting_average";}
+              });
+        
+        //define the range of avg values
+        var avg_legend_data = ["[0.0000, 0.0983]","[0.0984, 0.1343]","[0.1344, 0.1703]","[0.1704, 0.2064]","[0.2063, 0.2423]","[0.2424, 0.2783]","[0.2784, 0.3500]"];
+        //create avg_legend in order to show the range of avg values
+        var avg_legend = svg.append("g")
+                            .attr("class","avg_legend")
+                            .attr("transform","translate(10,10)")
+                            .selectAll("g")
+                            .data(avg_legend_data)
+                            .enter()
+                            .append("g");
+        avg_legend.append("rect")
+                  .attr("cy",60)
+                  .attr("y",330)
+                  .attr("x",1150)
+                  .attr("width",140)
+                  .attr("height",150)
+                  .attr("fill","black")
+                  .attr("fill-opacity","0.1")
+                  .attr("stroke","#fff");
+        avg_legend.append("text")
+                  .attr("class","avg_value")
+                  .attr("y",320)
+                  .attr("x",1063)
+                  .text("batting_average");
+        avg_legend.append("text")
+                  .attr("y",function(d,i){return 350+i*20;})
+                  .attr("x",1150)
+                  .text(function(d){return d;});
+
+
+        //aggregate the data according to avg value
+        var avg_entries = d3.nest()
+                            .key(function(d){
+                                if(d.avg<0.0984){return 1;}
+                                else if(d.avg>0.0983 && d.avg<0.1344){return 2;}
+                                else if(d.avg>0.1343 && d.avg<0.1704){return 3;}
+                                else if(d.avg>0.1703 && d.avg<0.2064){return 4;}
+                                else if(d.avg>0.2063 && d.avg<0.2424){return 5;}
+                                else if(d.avg>0.2423 && d.avg<0.2784){return 6;}
+                                else if(d.avg>0.2783 && d.avg<0.35){return 7;}
+                              })
+                            .entries(data);
+        //aggregate the data according to handedness value
+        var hand_entries = d3.nest()
+                              .key(function(d){return d.handedness=="L"?1:d.handedness=="R"?2:3;})
+                              .entries(data);
+          debugger;
+        /*
+          this function is to update data and window according to 
+          different key value.
+          key : the key value of avg_entries 
+        */
+        function update_avg(key){
+            var sub_title = "";
+            if(key ==1){sub_title = "[0.0000, 0.0983]";}
+            else if(key==2){sub_title = "[0.0984, 0.1343]";}
+            else if(key==3){sub_title="[0.1344, 0.1703]";}
+            else if(key==4){sub_title="[0.1704, 0.2064]";}
+            else if(key==5){sub_title="[0.2063, 0.2423]";}
+            else if(key==6){sub_title = "[0.2424, 0.2783]";}
+            else if(key==7){sub_title="[0.2784, 0.3500]";}
+            
+            //update the note of avg_value   
+            d3.select(".avg_value").text("batting_average ="+sub_title+"")
+
+            //filter avg_entries according to key value
+            var filtered = avg_entries.filter(word=>word.key == key);
+
+            //update the highlight notes of current range of avg values
+            d3.selectAll(".hl_avg_value").remove();
+
+            d3.select("svg")
+              .append("rect")
+              .attr("class","hl_avg_value")
+              .attr("cy",60)
+              .attr("y",323+key*20)
+              .attr("x",1160)
+              .attr("width",140)
+              .attr("height",23)
+              .attr("fill","red")
+              .attr("fill-opacity","0.7");
+            
+            //update the circles and ellipses
+            draw_cir_ell(key,filtered);
+
+    
+        }
+        
+        /*
+          this function to update circles and ellipses 
+          according to defferent filtered.
+          key: the key value of hand_entries
+        */
+        function update_hand(key){
+          //filter hand_entried according to key value
+          var filtered = hand_entries.filter(word=>word.key == key);
+          //update circles and ellipses
+          draw_cir_ell(key,filtered);
+        }
+        
+        /*
+          this function is to draw circles and ellipses.
+          key: index of the entries
+          sub_data: data to draw the circles and ellipses
+        */
+        function draw_cir_ell(key,sub_data){
+            //remove some old circles and ellipses from SVG
+            d3.selectAll(".circle1").remove();
+            d3.selectAll(".ell").remove();
+            //define circles and circles enter into SVG
+            d3.select("svg")
+              .selectAll("circle")
+              .data(sub_data[0].values)
+              .enter()
+              .append("circle")
+              .transition()
+              .duration(500)
+              .attr("class","circle1")
+              .attr("cx",function(d){return weight_scale(d['weight']);})
+              .attr("cy",function(d){return height_scale(d['height']);})
+              .attr("r",function(d){return r_scale(d['avg']);})
+              .attr("fill","red");
+           
+            //define ellipses and ellipse enter into SVG
+            d3.select("svg")
+              .selectAll("ellipse")
+              .data(sub_data[0].values)
+              .enter()
+              .append("ellipse")
+              .transition()
+              .duration(500)
+              .attr("class","ell")
+              .attr("cx",function(d){return (weight_scale(d['weight'])-HR_scale(d['HR'])/2);})
+              .attr("cy",function(d){return (height_scale(d['height'])-HR_scale(d['HR'])/2);})
+              .attr("rx",function(d){return (HR_scale(d['HR'])/2);})
+              .attr("ry",function(d){return (HR_scale(d['HR'])/2);})
+              .attr("fill","blue");
+        }
+
+
+        var key_list = [];
+        for(var i=1;i<8;i+=1){
+          key_list.push(i);
+        }
+
+        //set interval to call update_avg function
+        var key_idx = 0;
+        var key_interval = setInterval(function(){
+           update_avg(key_list[key_idx]);
+           key_idx = key_idx+1;
+           if(key_idx>=7){
+               clearInterval(key_interval);
+               //when finishing calling update_avg function, call button_event   
+               button_event();
+          }
+        },1000);
+        
+        /*
+         This function is to build the button for click event.
+         There are two wype of button: one type of button is for avg values 
+           and another type of button is for different kind of hand values.
+        */
+        function button_event(){
+            //create avg_buttons and avg_buttons enter SVG, define some attr of the buttons
+            var avg_buttons= d3.select("svg")
+                               .append("g")
+                               .attr("class","avg_buttons")
+                               .selectAll("rect")
+                               .data(avg_legend_data)
+                               .enter()
+                               .append("rect")
+                               .attr("class","avg_button")
+                               .attr("cy",60)
+                               .attr("y",function(d,i){return 314+(i+1)*20+11;})
+                               .attr("x",1160)
+                               .attr("width",140)
+                               .attr("height",17)
+                               .attr("fill","blue")
+                               .attr("fill-opacity","0.7")
+                               .attr("stroke","black")
+                               .attr("stroke-width","1");
+            //click event of the avg_buttons
+            avg_buttons.on("click",function(d,i){
+                    //to make all buttons in the initial attritube state
+                    d3.selectAll(".hand_button")
+                      .transition()
+                      .duration(100)
+                      .attr("fill","blue")
+                      .style("background","blue");
+
+                    d3.selectAll(".avg_button")
+                      .transition()
+                      .duration(100)
+                      .attr("fill","blue")
+                      .style("background","blue");
+                    //to change the attritube of cliking button
+                    d3.select(this)
+                      .transition()
+                      .duration(100)
+                      .attr("fill","red")
+                      .style("background","red");
+                    //call the update_avg function
+                      update_avg(i+1);
+                  });
+          //create hand_g and enter hand_entries data in to it
+          var hand_g = d3.select("svg")
+                         .append("g")
+                         .attr("class","hand_buttons")
+                         .selectAll("g")
+                         .data(hand_entries)
+                         .enter()
+                         .append("g");
+          //append text to hand_g and context of text is according to the key of hand_enteried
+          hand_g.append("text")
+                .attr("y",function(d,i){return 425+(i+1)*20;})
+                .attr("x",1050)
+                .text(function(d){return d.key==1?"Left  Hand":d.key==2?"Right Hand":"Both  Hand";});
+          //append rect to hand_g and edit its attitude
+          var hand_buttons = hand_g.append("rect")
+                                   .attr("class","hand_button")
+                                   .attr("cy",60)
+                                   .attr("y",function(d,i){return 410+(i+1)*20;})
+                                   .attr("x",1025)
+                                   .attr("width",120)
+                                   .attr("height",17)
+                                   .attr("fill","blue")
+                                   .attr("fill-opacity","0.7");
+          //click event of hand_buttons
+          hand_buttons.on("click",function(d,i){
+                    //to make buttons in initial attitude state
+                    d3.select(".avg_value").text("batting_average =[0.0000, 0.3500]")
+                    d3.selectAll(".hl_avg_value")
+                      .transition()
+                      .duration(100)
+                      .attr("fill","blue")
+                      .attr("fill-opacity","0.7");
+                    d3.selectAll(".avg_button")
+                      .transition()
+                      .duration(100)
+                      .attr("fill","blue")
+                      .style("background","blue");
+  
+                    d3.selectAll(".hand_button")
+                      .transition()
+                      .duration(100)
+                      .attr("fill","blue")
+                      .style("background","blue");
+                    //to change the attitude of clicking button
+                    d3.select(this)
+                      .transition()
+                      .duration(100)
+                      .attr("fill","red")
+                      .style("background","red");
+                    //call update_hand function
+                    update_hand(i+1);
+          });
+        }
+        
+
+      };
+
+    </script>
+</head>
+<body>
+  <script type="text/javascript">
+  /*
+    Use D3 to load the csv file
+    */
+    
+    d3.csv("baseball_data.csv",draw);
+    
+  </script>
+</body>
+</html>
